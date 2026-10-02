@@ -1,0 +1,155 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Logistics Risk | Election Intelligence</title>
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-dark bg-primary">
+    <div class="container">
+        <a class="navbar-brand" href="/dashboard">
+            Election Intelligence Platform
+        </a>
+        <a href="/dashboard" class="btn btn-outline-light">
+            Dashboard
+        </a>
+    </div>
+</nav>
+
+<div class="container py-5">
+    <h2>Logistics Risk Assessment</h2>
+    <p class="text-muted">
+        Enter shipment information to assess potential logistics risks.
+    </p>
+
+    {% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="POST" action="/logistics">
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Shipment Distance (km)</label>
+                        <input type="number" name="distance"
+                               class="form-control" min="0" step="0.1"
+                               required value="{{ form.get('distance', '') }}">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Expected Delay (hours)</label>
+                        <input type="number" name="delay"
+                               class="form-control" min="0" step="0.1"
+                               required value="{{ form.get('delay', '') }}">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Road Condition</label>
+                        <select name="road" class="form-select" required>
+                            <option value="good"
+                                {% if form.get('road') == 'good' %}selected{% endif %}>
+                                Good
+                            </option>
+                            <option value="moderate"
+                                {% if form.get('road') == 'moderate' %}selected{% endif %}>
+                                Moderate
+                            </option>
+                            <option value="poor"
+                                {% if form.get('road') == 'poor' %}selected{% endif %}>
+                                Poor
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">
+                            Historical Delay Rate (%)
+                        </label>
+                        <input type="number" name="history"
+                               class="form-control" min="0" max="100"
+                               step="0.1" required
+                               value="{{ form.get('history', '') }}">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Communication Method</label>
+                        <select name="communication" class="form-select" required>
+                            <option value="reliable"
+                                {% if form.get('communication') == 'reliable' %}selected{% endif %}>
+                                Reliable
+                            </option>
+                            <option value="intermittent"
+                                {% if form.get('communication') == 'intermittent' %}selected{% endif %}>
+                                Intermittent
+                            </option>
+                            <option value="unavailable"
+                                {% if form.get('communication') == 'unavailable' %}selected{% endif %}>
+                                Unavailable
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Vehicle Capacity (units)</label>
+                        <input type="number" name="capacity"
+                               class="form-control" min="0" step="1"
+                               required value="{{ form.get('capacity', '') }}">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary mt-4">
+                    Assess Logistics Risk
+                </button>
+            </form>
+        </div>
+    </div>
+
+    {% if result %}
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h4>Assessment Result</h4>
+            <p>
+                Risk score:
+                <strong>{{ result.score }} / 100</strong>
+            </p>
+            <div class="progress mb-3" style="height: 24px;">
+                <div class="progress-bar
+                    {% if result.level == 'High' %}bg-danger
+                    {% elif result.level == 'Medium' %}bg-warning
+                    {% else %}bg-success{% endif %}"
+                    data-width="{{ result.score }}"
+                    {{ result.score }}%
+                </div>
+            </div>
+            <p>Risk category: <strong>{{ result.level }}</strong></p>
+
+            <h5>Explanation</h5>
+            <ul>
+                {% for reason in result.reasons %}
+                <li>{{ reason }}</li>
+                {% endfor %}
+            </ul>
+
+            <div class="alert alert-info">
+                This is a preliminary rule-based risk indicator,
+                not a verified probability of shipment failure.
+                A human reviewer should examine the result.
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+<script>
+  document.querySelectorAll('.progress-bar[data-width]').forEach(function (bar) {
+    bar.style.width = bar.dataset.width + '%';
+  });
+</script>
+</body>
+</html>
